@@ -1,3 +1,6 @@
+// Arif Burak Demiray - 250201022
+// contact - arifdemiray@std.iyte.edu.tr
+
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>

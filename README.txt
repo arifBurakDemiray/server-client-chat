@@ -1,10 +1,10 @@
 To build and run the server/client applications,
 
-Extract zipped 250201022_hw4.zip folder.
+Extract zipped 250201022_FinalProject.zip folder.
 
 Then go into it with 'cd' function. 
 
-Create a folder named build with 'mkdir build'
+Create a folder named 'build' with 'mkdir build'
 
 If you do not have cmake, make sure that you have it
 

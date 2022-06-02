@@ -1,3 +1,6 @@
+// Arif Burak Demiray - 250201022
+// contact - arifdemiray@std.iyte.edu.tr
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,9 +29,6 @@ int size(char *values);
 
 //TODO dhke, pool management
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
 struct client{
 
 	int id;
@@ -51,7 +51,7 @@ static void sig_handler(int _)
 }
 
 //slave function like client does receiving
-void * comm(void * client){
+void * comm(void * client){ //receive new connections and commands and respond
 
 	struct client* tempClient = (struct client*) client;
 	int socketId = tempClient -> socketId;
@@ -59,7 +59,7 @@ void * comm(void * client){
 	{
 		StrTime(Time);
 		fprintf(stderr, "[" RED "ERROR" RESET "][%s] Cannot accept connections!\n", Time);
-		return 0;
+		pthread_exit(NULL);
 	}
 
 	StrTime(Time); //print client id and port
@@ -69,14 +69,14 @@ void * comm(void * client){
 
 		char data[BUFFER_SIZE];
 		int read = recv(socketId,data,BUFFER_SIZE,0);
-		data[read] = '\0'; //receive command
+		data[read] = '\0'; //receive command and finish the data by ending it with \0
 
 		char output[BUFFER_SIZE];
 
 		//sigint handler to remove client from pool
 		if(strcmp(data,DISCONNECT) == 0){
-			//TODO add handler
-		}
+			pthread_exit(NULL);
+		}//send available clients to the desired user
 		else if(strcmp(data,CLIENTS) == 0){
 
 			int len = 0;
@@ -102,7 +102,7 @@ void * comm(void * client){
 			read = recv(socketId,data,BUFFER_SIZE,0);
 			data[read] = '\0';
 			char tempArray[BUFFER_SIZE];
-			sprintf(tempArray," User%d:%s\0",tempClient->id+1,data);
+			sprintf(tempArray," User%d:%s\0",tempClient->id+1,data); //prepare message
 
 			send(clients[receivedId].socketId,tempArray,BUFFER_SIZE,0);			
 
@@ -118,7 +118,7 @@ int main(){
 
 	int serverSocket = socket(PF_INET, SOCK_STREAM, 0);
 
-	struct sigaction psa;
+	struct sigaction psa; //sigint handler
     psa.sa_handler = sig_handler;
     sigaction(SIGINT, &psa, NULL);
 
@@ -144,7 +144,7 @@ int main(){
     StrTime(Time);
     fprintf(stderr, "[" GRN "INFO" RESET "][%s] Server started to listen port %d\n", Time,SERVER_PORT);
 
-	while(keep_running){
+	while(keep_running){ //continute to accept connections
 
 		clients[CLIENT_COUNT].socketId = accept(serverSocket, (struct sockaddr*) &clients[CLIENT_COUNT].address, &clients[CLIENT_COUNT].length);
 		clients[CLIENT_COUNT].id = CLIENT_COUNT;
@@ -156,14 +156,12 @@ int main(){
 	}
 
 
-	for(int i=0; i< MAX_SIZE; i++){
+	for(int i=0; i< MAX_SIZE; i++){ //send disconnect signal to all clients after finish
 		send(clients[i].socketId,DISCONNECT,6,0);
-	
-		
 	}
 
 
-	for(int i = 0 ; i < CLIENT_COUNT ; i ++)
+	for(int i = 0 ; i < CLIENT_COUNT ; i ++) //gather all threads
 		pthread_join(threads[i],NULL);
 
 	close(serverSocket);
