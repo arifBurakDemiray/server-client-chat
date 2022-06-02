@@ -13,3 +13,5 @@ go into build folder and write 'cmake ../'
 After some operations, then type 'make'
 
 Now you are ready to go
+
+Screenshots are inside of the report
